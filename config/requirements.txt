@@ -1,0 +1,5 @@
+mcp>=1.6.0
+fastmcp>=0.4.0
+requests>=2.31.0
+python-dotenv>=1.0.0
+pydantic>=2.4.0

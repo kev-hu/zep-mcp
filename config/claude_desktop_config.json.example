@@ -1,0 +1,10 @@
+{
+    "mcpServers": {
+        "zep-cloud": {
+            "command": "/ABSOLUTE/PATH/TO/venv/bin/python",
+            "args": [
+                "/ABSOLUTE/PATH/TO/zep_cloud_server.py"
+            ]
+        }
+    }
+} 
