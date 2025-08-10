@@ -1,5 +1,29 @@
-mcp>=1.6.0
-fastmcp>=0.4.0
-requests>=2.31.0
-python-dotenv>=1.0.0
-pydantic>=2.4.0
+# Core MCP and FastMCP dependencies
+mcp>=1.12.4
+fastmcp>=2.11.2
+
+# Zep Cloud SDK
+zep-cloud>=3.2.0
+
+# HTTP client libraries
+httpx>=0.28.1
+requests>=2.32.4
+
+# Environment and configuration
+python-dotenv>=1.1.1
+pydantic>=2.11.7
+pydantic-settings>=2.10.1
+
+# Async support
+anyio>=4.10.0
+
+# Logging and CLI
+rich>=14.1.0
+click>=8.2.1
+
+# Type checking and validation
+typing-extensions>=4.14.1
+annotated-types>=0.7.0
+
+# JSON handling
+jsonschema>=4.25.0
