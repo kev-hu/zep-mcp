@@ -1,7 +1,10 @@
+from tools.memory import register as register_memory
+
+
 def register_all(mcp, zep, toolsets):
     """Register tool modules based on enabled toolsets."""
     registrars = {
-        "memory": [],
+        "memory": [register_memory],
         "admin": [],
     }
     for toolset in toolsets:
