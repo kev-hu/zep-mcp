@@ -1,69 +1,56 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
 ## Project Overview
 
-MCP (Model Context Protocol) server that bridges Claude Desktop and the Zep Cloud API for AI assistant memory management. Built with FastMCP and the Zep Cloud Python SDK.
+MCP server for the Zep Cloud API — a context engineering platform for AI agent memory.
+Built with FastMCP and the zep-cloud Python SDK.
 
-## Commands
+## Run the server
 
-### Run the server (dev mode)
-```bash
-source venv/bin/activate
-fastmcp dev core/zep_cloud_server.py
-```
+    source venv/bin/activate
+    python server.py
 
-Or use the wrapper script:
-```bash
-scripts/run_server.sh
-```
+Or with FastMCP dev mode:
 
-### Install dependencies
-```bash
-python3 -m venv venv
-source venv/bin/activate
-pip install -r config/requirements.txt
-```
+    fastmcp dev server.py
 
-### Run tests
-Tests require a live Zep Cloud API key in `.env`. They are integration tests that hit the real API.
-```bash
-source venv/bin/activate
-cd core && python -m pytest ../tests/test_zep_cloud_client.py
-cd core && python -m pytest ../tests/test_comprehensive.py
-cd core && python -m pytest ../tests/test_specific_user.py
-```
+## Configuration
 
-Tests in `scripts/` are standalone test scripts (not pytest), run directly:
-```bash
-cd core && python ../scripts/test_graph_search.py
-```
-
-Note: Tests import `zep_cloud_client` as a bare module name, so `core/` must be the working directory or on `sys.path`.
+- `ZEP_API_KEY` (required) — Zep Cloud API key, set in `.env`
+- `ZEP_TOOLSETS` (optional) — comma-separated list of tool groups to enable.
+  Values: `memory`, `admin`. Defaults to `memory,admin` (all tools).
 
 ## Architecture
 
-### Two-layer client design
+13 tools organized by jobs-to-be-done, not API structure:
 
-- **`core/zep_cloud_client.py`** — The primary client. Uses the official `zep_cloud` SDK (`from zep_cloud.client import Zep`). Handles user CRUD, graph search, and graph data operations. Returns Python dicts/lists.
+**Memory tools** (tag: `memory`):
+  add_messages, get_context, add_graph_data, search_graph, get_task
 
-- **`core/zep_cloud_server.py`** — The MCP server. Uses `FastMCP` to expose tools to Claude Desktop. Tries to import `ZepCloudClient` from `zep_cloud_client.py`; if that fails, defines its own fallback `ZepCloudClient` using raw `requests` against `https://api.getzep.com/api/v2`. Tool functions are thin wrappers that call the client and return `json.dumps(result)`.
+**Admin tools** (tag: `admin`):
+  manage_user, manage_user_instructions, manage_thread, manage_graph,
+  manage_graph_structure, manage_graph_data, manage_context_templates, project_info
 
-### Fallback mode
+## Adding a new tool
 
-Both the SDK client and the raw-requests fallback client have a `fallback_mode` flag. When the API is unreachable or auth fails, operations return simulated success responses. This keeps Claude Desktop functional even without a live API connection.
+1. Pick the right file in `tools/` (or create a new one for a new domain)
+2. Define the function following the existing pattern:
+   - Use `Literal` types for action/scope params
+   - Return plain dicts (no json.dumps)
+   - No try/except — let exceptions propagate
+   - Add `annotations` (readOnlyHint, destructiveHint)
+   - Add the appropriate tag ("memory" or "admin")
+3. Register it in the module's `register(mcp, zep)` function
+4. Add tests in the matching `tests/test_*.py` file
 
-### MCP tools exposed
+## Running tests
 
-User management: `create_user`, `get_user`, `update_user`, `delete_user`, `list_users`
-Graph operations: `search_graph`, `add_graph_data`
-Connectivity: `check_connection`
+    source venv/bin/activate
+    python -m pytest tests/
 
-### Key conventions
+## Key conventions
 
-- Zep Cloud API base URL: `https://api.getzep.com/api/v2`
-- API key is loaded from `ZEP_API_KEY` in `.env` via `python-dotenv`
-- The server entry point is `core/zep_cloud_server.py` — runs via `mcp.run()` (stdio transport for Claude Desktop)
-- `core/run_server.py` is an alternative entry point that imports the server module dynamically
-- Configuration templates live in `config/`; active `.env` lives at repo root
+- Zep Cloud API base URL: https://api.getzep.com/api/v2
+- API key loaded from ZEP_API_KEY in .env via python-dotenv
+- Server runs via mcp.run() (stdio transport for Claude Desktop)
+- Tools accepting user_id/graph_id enforce mutual exclusivity via _require_one_of()
