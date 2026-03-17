@@ -31,7 +31,7 @@ The current MCP server was built as a learning project. It has duplicated client
 | `add_messages` | single (list of messages) | `thread.add_messages` | |
 | `get_context` | optional `template_id` | `thread.get_user_context` | `readOnlyHint` |
 | `add_graph_data` | type: text / json / message / triple | `graph.add` (text/json/message) or `graph.add_fact_triple` (triple) — see routing note below | |
-| `search_graph` | scope: edges / nodes; filters, reranker | `graph.search` | `readOnlyHint` |
+| `search_graph` | scope: edges / nodes / episodes; filters, reranker | `graph.search` | `readOnlyHint` |
 | `get_task` | poll by task_id | Verify exact SDK method name during implementation | `readOnlyHint` |
 
 ### Admin tools (tag: `admin`)
@@ -61,10 +61,10 @@ def search_graph(
     query: str,
     user_id: str | None = None,
     graph_id: str | None = None,
-    scope: Literal["edges", "nodes"] = "edges",
+    scope: Literal["edges", "nodes", "episodes"] = "edges",
     limit: int = 10,
 ) -> dict:
-    """Search a knowledge graph for relevant facts or entities.
+    """Search a knowledge graph for relevant facts, entities, or episodes.
     Keep queries concise and specific for best results."""
     _require_one_of(user_id=user_id, graph_id=graph_id)
     return zep.graph.search(
@@ -96,17 +96,31 @@ def add_graph_data(
     data: str | None = None,
     user_id: str | None = None,
     graph_id: str | None = None,
-    # Triple-specific params:
+    # Triple-specific params (required when type="triple"):
     fact: str | None = None,
     fact_name: str | None = None,
+    source_node_name: str | None = None,
     target_node_name: str | None = None,
+    # Triple optional params:
+    valid_at: str | None = None,
+    invalid_at: str | None = None,
+    source_node_attrs: dict | None = None,
+    edge_attrs: dict | None = None,
+    target_node_attrs: dict | None = None,
 ) -> dict:
-    """Add data to a knowledge graph. Use type to specify the data format."""
+    """Add data to a knowledge graph. Use type to specify the data format.
+    For triple: provide fact, fact_name, source_node_name, and target_node_name."""
     _require_one_of(user_id=user_id, graph_id=graph_id)
     if type == "triple":
         return zep.graph.add_fact_triple(
             user_id=user_id, graph_id=graph_id,
-            fact=fact, fact_name=fact_name, target_node_name=target_node_name,
+            fact=fact, fact_name=fact_name,
+            source_node_name=source_node_name,
+            target_node_name=target_node_name,
+            valid_at=valid_at, invalid_at=invalid_at,
+            source_node_attrs=source_node_attrs,
+            edge_attrs=edge_attrs,
+            target_node_attrs=target_node_attrs,
         )
     return zep.graph.add(
         user_id=user_id, graph_id=graph_id, type=type, data=data,
@@ -364,15 +378,16 @@ No `requests`, `httpx`, `pydantic`, `rich`, `click`, `jsonschema`, or other depe
 
 The Zep docs show multi-language examples and REST endpoints. The Python SDK method names may differ. The following must be verified against the actual installed `zep-cloud>=3.2.0` Python package before implementation:
 
-- [ ] `graph.clone()` — exists as SDK method or requires raw API call?
-- [ ] `graph.set_ontology()` / `graph.list_ontology()` — actual method names in Python SDK?
-- [ ] `graph.custom_instructions.*` — actual method names?
-- [ ] `graph.detect_patterns()` — actual method name and params?
-- [ ] `graph.add_fact_triple()` — actual method name and required params?
-- [ ] `thread.list_all()` — exists, or is thread listing only via `user.get_threads()`?
-- [ ] `task.get()` — actual SDK client path for task polling?
-- [ ] `graph_id` vs `group_id` — which parameter name does SDK v3 use? If `graph_id`, great. If `group_id`, tool params should use `graph_id` and map internally.
-- [ ] `thread.add_messages_batch()` — separate method or same as `add_messages` with a list?
+- [ ] `graph.clone()` — confirmed exists via CLI (`zepctl graph clone`); verify Python SDK method name
+- [ ] `graph.set_ontology()` / `graph.list_ontology()` — CLI uses `ontology get/set`; verify Python SDK method names
+- [ ] `graph.custom_instructions.*` — verify Python SDK method names
+- [ ] `graph.detect_patterns()` — confirmed exists via CLI (`zepctl graph detect-patterns`); verify Python SDK method name and params (limit, min_occurrences, recency_weight, include_examples, node_labels, edge_types)
+- [ ] `graph.add_fact_triple()` — confirmed via CLI; required params: fact, fact_name, source_node_name, target_node_name; optional: valid_at, invalid_at, source_node_attrs, edge_attrs, target_node_attrs, source_labels, target_labels
+- [ ] `thread.list_all()` — CLI has `thread list` as a top-level command (not user-scoped); verify Python SDK method
+- [ ] `task.get()` — confirmed via CLI (`zepctl task get`); also has `task wait` with timeout/poll — check if SDK has wait method
+- [ ] `graph_id` vs `group_id` — which parameter name does SDK v3 use? If `group_id`, tool params should use `graph_id` and map internally
+- [ ] `thread.add_messages_batch()` — CLI uses `--batch` flag on `thread add-messages`; verify if SDK has separate method
 - [ ] FastMCP 2.x `tags` and `annotations` API — verify syntax and behavior
+- [ ] `episodes` as search scope — CLI confirms `--scope episodes` is valid; verify Python SDK supports it
 
 Resolve each item by reading the installed SDK source after upgrading. Update tool implementations accordingly.
