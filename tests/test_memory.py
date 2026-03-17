@@ -19,3 +19,21 @@ def test_search_graph_requires_user_or_graph_id():
     from utils import _require_one_of
     with pytest.raises(ValueError, match="user_id or graph_id"):
         _require_one_of(user_id=None, graph_id=None)
+
+
+def test_add_messages_is_registered(mcp, zep):
+    from tools.memory import register
+    register(mcp, zep)
+    assert "add_messages" in get_tool_names(mcp)
+
+
+def test_get_context_is_registered(mcp, zep):
+    from tools.memory import register
+    register(mcp, zep)
+    assert "get_context" in get_tool_names(mcp)
+
+
+def test_add_graph_data_is_registered(mcp, zep):
+    from tools.memory import register
+    register(mcp, zep)
+    assert "add_graph_data" in get_tool_names(mcp)
