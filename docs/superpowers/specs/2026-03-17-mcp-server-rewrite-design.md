@@ -32,7 +32,7 @@ The current MCP server was built as a learning project. It has duplicated client
 | `get_context` | optional `template_id` | `thread.get_user_context` | `readOnlyHint` |
 | `add_graph_data` | type: text / json / message / triple | `graph.add` (text/json/message) or `graph.add_fact_triple` (triple) — see routing note below | |
 | `search_graph` | scope: edges / nodes / episodes; filters, reranker | `graph.search` | `readOnlyHint` |
-| `get_task` | poll by task_id | Verify exact SDK method name during implementation | `readOnlyHint` |
+| `get_task` | poll by task_id | `task.get(task_id=...)` | `readOnlyHint` |
 
 ### Admin tools (tag: `admin`)
 
@@ -40,9 +40,9 @@ The current MCP server was built as a learning project. It has duplicated client
 |---|---|---|---|
 | `manage_user` | create / get / update / delete / list / warm | `user.add`, `.get`, `.update`, `.delete`, `.list_ordered`, `.warm` | `destructiveHint` on delete |
 | `manage_user_instructions` | list / add / delete | `user.*_user_summary_instructions` | `destructiveHint` on delete |
-| `manage_thread` | create / get / delete / list | `thread.create`, `.get`, `.delete`; listing via `user.get_threads` (requires `user_id`) | `destructiveHint` on delete |
-| `manage_graph` | create / get / update / delete / list / clone | `graph.create`, `.get`, `.update`, `.delete`, `.list_all`, `.clone` — verify `clone` SDK method exists | `destructiveHint` on delete |
-| `manage_graph_structure` | set_ontology / list_ontology / add_instructions / list_instructions / delete_instructions / detect_patterns | Verify exact SDK v3 method names during implementation (docs show REST endpoints, Python SDK names may differ) | |
+| `manage_thread` | create / get / delete / list | `thread.create`, `.get`, `.delete`, `.list_all` | `destructiveHint` on delete |
+| `manage_graph` | create / get / update / delete / list / clone | `graph.create`, `.get`, `.update`, `.delete`, `.list_all`, `.clone` | `destructiveHint` on delete |
+| `manage_graph_structure` | set_ontology / list_ontology / add_instructions / list_instructions / delete_instructions / detect_patterns | `graph.set_ontology`, `.list_ontology`, `.add_custom_instructions`, `.list_custom_instructions`, `.delete_custom_instructions`, `.detect_patterns` | |
 | `manage_graph_data` | scope: node / edge / episode; action: get / update / delete / list / get_edges / get_episodes / get_mentions | Node/edge/episode CRUD + traversal endpoints | `destructiveHint` on delete |
 | `manage_context_templates` | create / get / update / list / delete | `context.*_context_template` | `destructiveHint` on delete |
 | `project_info` | — | `project.get` | `readOnlyHint` |
@@ -378,16 +378,16 @@ No `requests`, `httpx`, `pydantic`, `rich`, `click`, `jsonschema`, or other depe
 
 The Zep docs show multi-language examples and REST endpoints. The Python SDK method names may differ. The following must be verified against the actual installed `zep-cloud>=3.2.0` Python package before implementation:
 
-- [ ] `graph.clone()` — confirmed exists via CLI (`zepctl graph clone`); verify Python SDK method name
-- [ ] `graph.set_ontology()` / `graph.list_ontology()` — CLI uses `ontology get/set`; verify Python SDK method names
-- [ ] `graph.custom_instructions.*` — verify Python SDK method names
-- [ ] `graph.detect_patterns()` — confirmed exists via CLI (`zepctl graph detect-patterns`); verify Python SDK method name and params (limit, min_occurrences, recency_weight, include_examples, node_labels, edge_types)
-- [ ] `graph.add_fact_triple()` — confirmed via CLI; required params: fact, fact_name, source_node_name, target_node_name; optional: valid_at, invalid_at, source_node_attrs, edge_attrs, target_node_attrs, source_labels, target_labels
-- [ ] `thread.list_all()` — CLI has `thread list` as a top-level command (not user-scoped); verify Python SDK method
-- [ ] `task.get()` — confirmed via CLI (`zepctl task get`); also has `task wait` with timeout/poll — check if SDK has wait method
-- [ ] `graph_id` vs `group_id` — which parameter name does SDK v3 use? If `group_id`, tool params should use `graph_id` and map internally
-- [ ] `thread.add_messages_batch()` — CLI uses `--batch` flag on `thread add-messages`; verify if SDK has separate method
-- [ ] FastMCP 2.x `tags` and `annotations` API — verify syntax and behavior
-- [ ] `episodes` as search scope — CLI confirms `--scope episodes` is valid; verify Python SDK supports it
+- [x] `client.graph.clone()` — confirmed. No required params; accepts source_graph_id/source_user_id + target_graph_id/target_user_id. Returns task_id.
+- [x] `client.graph.set_ontology(entities=..., edges=...)` — confirmed. Uses Pydantic EntityModel/EdgeModel classes. `client.graph.list_ontology()` returns entity_types + edge_types.
+- [x] `client.graph.add_custom_instructions(instructions=[CustomInstruction(name=..., text=...)])` — confirmed. Also: `client.graph.list_custom_instructions()`, `client.graph.delete_custom_instructions()`. Accepts optional user_ids/graph_ids.
+- [x] `client.graph.detect_patterns()` — confirmed. Params: user_id, graph_id, query, limit, min_occurrences, recency_weight, seeds, search_filters, detect config.
+- [x] `client.graph.add_fact_triple(fact=..., fact_name=...)` — confirmed. Required: fact, fact_name. Optional: user_id, graph_id, source_node_name, target_node_name, source_node_uuid, target_node_uuid, valid_at, invalid_at, source_node_attributes, edge_attributes, target_node_attributes, source_node_labels, target_node_labels.
+- [x] `client.thread.list_all(page_number=..., page_size=..., order_by=..., asc=...)` — confirmed. Top-level list, not user-scoped.
+- [x] `client.task.get(task_id=...)` — confirmed. Returns status, progress, error, timestamps.
+- [x] `graph_id` — confirmed as the parameter name in SDK v3 (e.g. `GraphSearchQuery.graph_id`). No mapping needed.
+- [ ] `thread.add_messages_batch()` — verify if separate method exists in SDK v3 or if batch is via `thread.add_messages` with a list
+- [ ] FastMCP 2.x `tags` and `annotations` API — verify syntax and behavior after upgrading
+- [x] `episodes` as search scope — confirmed in OpenAPI spec: `GraphSearchScope` enum includes `edges`, `nodes`, `episodes`. Also 5 rerankers: `rrf`, `mmr`, `node_distance`, `episode_mentions`, `cross_encoder`.
 
-Resolve each item by reading the installed SDK source after upgrading. Update tool implementations accordingly.
+Resolve remaining items by reading the installed SDK source after upgrading.
