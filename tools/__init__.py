@@ -1,12 +1,13 @@
 from tools.memory import register as register_memory
 from tools.users import register as register_users
+from tools.threads import register as register_threads
 
 
 def register_all(mcp, zep, toolsets):
     """Register tool modules based on enabled toolsets."""
     registrars = {
         "memory": [register_memory],
-        "admin": [register_users],
+        "admin": [register_users, register_threads],
     }
     for toolset in toolsets:
         handlers = registrars.get(toolset, [])
