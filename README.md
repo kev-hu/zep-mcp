@@ -16,6 +16,12 @@ Copy `.env.example` to `.env` and fill in your Zep Cloud API key:
 cp .env.example .env
 ```
 
+Install the pre-commit hook to prevent accidentally committing secrets:
+
+```bash
+cp scripts/pre-commit .git/hooks/pre-commit
+```
+
 ## Run the server
 
 ```bash

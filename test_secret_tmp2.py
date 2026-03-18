@@ -1,0 +1,1 @@
+key = "sk-proj-abcdefghijklmnopqrstuvwx"
