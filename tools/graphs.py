@@ -52,12 +52,12 @@ def register(mcp, zep):
     @mcp.tool(tags={"admin"}, annotations={"destructiveHint": True})
     def manage_graph_structure(
         action: Literal[
-            "set_ontology", "list_ontology",
+            "set_entity_types", "list_entity_types",
             "add_instructions", "list_instructions", "delete_instructions",
             "detect_patterns",
         ],
-        entities: dict | None = None,
-        edges: dict | None = None,
+        entity_types: list[dict] | None = None,
+        edge_types: list[dict] | None = None,
         instructions: list[dict] | None = None,
         user_id: str | None = None,
         graph_id: str | None = None,
@@ -67,16 +67,29 @@ def register(mcp, zep):
         limit: int | None = None,
         min_occurrences: int | None = None,
     ):
-        """Manage graph schema and structure. Actions: set_ontology, list_ontology,
+        """Manage graph schema and structure. Actions: set_entity_types, list_entity_types,
         add_instructions, list_instructions, delete_instructions, detect_patterns."""
         match action:
-            case "set_ontology":
-                return zep.graph.set_ontology(
-                    entities=entities or {},
-                    edges=edges or {},
-                )
-            case "list_ontology":
-                return zep.graph.list_ontology()
+            case "set_entity_types":
+                kwargs = {}
+                if entity_types is not None:
+                    from zep_cloud import EntityType
+                    kwargs["entity_types"] = [EntityType(**e) for e in entity_types]
+                if edge_types is not None:
+                    from zep_cloud import EdgeType
+                    kwargs["edge_types"] = [EdgeType(**e) for e in edge_types]
+                if user_ids is not None:
+                    kwargs["user_ids"] = user_ids
+                if graph_ids is not None:
+                    kwargs["graph_ids"] = graph_ids
+                return zep.graph.set_entity_types_internal(**kwargs)
+            case "list_entity_types":
+                kwargs = {}
+                if user_id is not None:
+                    kwargs["user_id"] = user_id
+                if graph_id is not None:
+                    kwargs["graph_id"] = graph_id
+                return zep.graph.list_entity_types(**kwargs)
             case "add_instructions":
                 from zep_cloud import CustomInstruction
                 instr = [CustomInstruction(**i) for i in (instructions or [])]
