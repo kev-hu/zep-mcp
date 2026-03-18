@@ -8,8 +8,8 @@ MCP server for the [Zep Cloud](https://www.getzep.com/) API — a context engine
 >
 > A year later, I've learned a thing or two. So I burned it all down and rewrote it.
 >
-> **Before:** 2 tangled client layers, 8 tools, fallback mode that lied to you, ~4,000 lines  💀
-> **After:** 1 clean server entry point, 13 tools covering the full Zep Cloud API, ~770 lines
+> - **Before:** 2 tangled client layers, 8 tools, fallback mode that lied to you, ~4,000 lines  💀
+> - **After:** 1 clean server entry point, 13 tools covering the full Zep Cloud API, ~770 lines
 >
 > Keeping the old git history because it's kinda funny lmao
 
