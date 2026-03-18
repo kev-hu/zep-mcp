@@ -11,7 +11,7 @@ if not api_key:
     raise RuntimeError("ZEP_API_KEY environment variable is required")
 
 zep = Zep(api_key=api_key)
-mcp = FastMCP(name="zep-cloud")
+mcp = FastMCP(name="zep-mcp")
 
 toolsets = os.environ.get("ZEP_TOOLSETS", "memory,admin").split(",")
 toolsets = [t.strip() for t in toolsets]

@@ -1,6 +1,17 @@
-# mcp-server-zep-cloud
+# zep-mcp
 
 MCP server for the [Zep Cloud](https://www.getzep.com/) API — a context engineering platform for AI agent memory. Built with [FastMCP](https://github.com/jlowin/fastmcp) and the [zep-cloud](https://pypi.org/project/zep-cloud/) Python SDK.
+
+## 📖 The story
+
+> I originally built this project back in early 2025 when I was just learning how to code. It worked! ...technically. The old version had a fallback client that returned *fake success responses* when the API was down 😅, wrapper scripts for every platform imaginable, and enough redundant code to make future-me cringe.
+>
+> A year later, I've learned a thing or two. So I burned it all down and rewrote it.
+>
+> **Before:** 2 tangled client layers, 8 tools, fallback mode that lied to you, ~4,000 lines  💀
+> **After:** 1 clean server entry point, 13 tools covering the full Zep Cloud API, ~770 lines
+>
+> Keeping the old git history because it's kinda funny lmao
 
 ## Setup
 
