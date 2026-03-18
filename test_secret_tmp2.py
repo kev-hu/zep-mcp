@@ -1,1 +1,0 @@
-key = "sk-proj-abcdefghijklmnopqrstuvwx"
