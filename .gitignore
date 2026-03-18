@@ -56,4 +56,13 @@ tmp/
 .Spotlight-V100
 .Trashes
 ehthumbs.db
-Thumbs.db 
+Thumbs.db
+
+# AI assistant config (local only)
+CLAUDE.md
+
+# Internal dev planning
+docs/superpowers/
+
+# Skills (development)
+skills/
