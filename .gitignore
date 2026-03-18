@@ -60,6 +60,8 @@ Thumbs.db
 
 # AI assistant config (local only)
 CLAUDE.md
+CLAUDE.md.*
+.claude
 
 # Internal dev planning
 docs/superpowers/
